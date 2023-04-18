@@ -69,7 +69,7 @@ data = bytes.fromhex(
 fragmentSize = len(data) // NB_FRAGMENTS
 fragments = []
 for i in range(0, len(data), fragmentSize):
-    fragments.append(data[i:fragmentSize])
+    fragments.append(data[i : i + fragmentSize])
 
 
 for fragNb in range(NB_FRAGMENTS):
