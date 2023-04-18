@@ -17,6 +17,8 @@ from rc4 import RC4
 # Cle wep AA:AA:AA:AA:AA
 key = b"\xaa\xaa\xaa\xaa\xaa"
 
+NB_FRAGMENTS = 3
+
 
 def gen_packet(data):
     # lecture de message chiffré - rdpcap retourne toujours un array, même si la capture contient un seul paquet
@@ -63,8 +65,18 @@ data = bytes.fromhex(
     "aaaa03000000080600010800060400019027e4ea61f2c0a80164000000000000c0a801c8deadbeef"
 )
 
-normal_packet = gen_packet(data)
-fragments = fragment(normal_packet, fragsize=8)
 
-for arp in fragments:
+fragmentSize = len(data) // NB_FRAGMENTS
+fragments = []
+for i in range(0, len(data), fragmentSize):
+    fragments.append(data[i:fragmentSize])
+
+
+for fragNb in range(NB_FRAGMENTS):
+    arp = gen_packet(fragments[fragNb])
+    arp.SC = fragNb
+    if fragNb < NB_FRAGMENTS - 1:
+        # met le champs more fragment à 1
+        arp.FCfield.MF = 1
+
     wrpcap("fichier-frag.pcap", arp, append=True)
