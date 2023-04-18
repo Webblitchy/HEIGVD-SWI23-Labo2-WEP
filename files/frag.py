@@ -13,6 +13,7 @@ __status__ = "Prototype"
 from scapy.all import *
 import binascii
 from rc4 import RC4
+from math import ceil
 
 # Cle wep AA:AA:AA:AA:AA
 key = b"\xaa\xaa\xaa\xaa\xaa"
@@ -66,17 +67,18 @@ data = bytes.fromhex(
 )
 
 
-fragmentSize = len(data) // NB_FRAGMENTS
+# Sépare les donneés en plusieurs parties
+fragmentSize = ceil(len(data) / NB_FRAGMENTS)
 fragments = []
 for i in range(0, len(data), fragmentSize):
     fragments.append(data[i : i + fragmentSize])
 
-
+# Génère un packet par partie
 for fragNb in range(NB_FRAGMENTS):
     arp = gen_packet(fragments[fragNb])
-    arp.SC = fragNb
+    arp.SC = fragNb  # no de fragment
     if fragNb < NB_FRAGMENTS - 1:
         # met le champs more fragment à 1
         arp.FCfield.MF = 1
 
-    wrpcap("fichier-frag.pcap", arp, append=True)
+    wrpcap("fichier-frag.pcap", arp, append=True)  # enregistre le packet
