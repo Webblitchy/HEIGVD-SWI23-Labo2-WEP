@@ -1,24 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" Manually decrypt a wep message given the WEP key"""
-
-__author__ = "Abraham Rubinstein"
-__copyright__ = "Copyright 2017, HEIG-VD"
-__license__ = "GPL"
-__version__ = "1.0"
-__email__ = "abraham.rubinstein@heig-vd.ch"
-__status__ = "Prototype"
+""" Manually fragment a wep message given the WEP key"""
 
 from scapy.all import *
 import binascii
 from rc4 import RC4
 from math import ceil
 
+NB_FRAGMENTS = 3
+
 # Cle wep AA:AA:AA:AA:AA
 key = b"\xaa\xaa\xaa\xaa\xaa"
-
-NB_FRAGMENTS = 3
 
 
 def gen_packet(data):
@@ -59,15 +52,13 @@ def gen_packet(data):
     return arp
 
 
-# On enregistre dans le fichier pcap
-
 # Définition de notre message en clair
 data = bytes.fromhex(
     "aaaa03000000080600010800060400019027e4ea61f2c0a80164000000000000c0a801c8deadbeef"
 )
 
 
-# Sépare les donneés en plusieurs parties
+# Sépare les données en plusieurs parties
 fragmentSize = ceil(len(data) / NB_FRAGMENTS)
 fragments = []
 for i in range(0, len(data), fragmentSize):
@@ -78,7 +69,6 @@ for fragNb in range(NB_FRAGMENTS):
     arp = gen_packet(fragments[fragNb])
     arp.SC = fragNb  # no de fragment
     if fragNb < NB_FRAGMENTS - 1:
-        # met le champs more fragment à 1
-        arp.FCfield.MF = 1
+        arp.FCfield.MF = 1  # met le champs more fragment à 1
 
-    wrpcap("fichier-frag.pcap", arp, append=True)  # enregistre le packet
+    wrpcap("manual-fragmentation.pcap", arp, append=True)  # enregistre le packet
